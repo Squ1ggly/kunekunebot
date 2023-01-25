@@ -5,3 +5,4 @@ REMOVE_THIS_TEXT.env
 deployDist
 yarn.lock
 package-lock.json
+.vscode

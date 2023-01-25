@@ -1,7 +1,7 @@
 import { CommandInteraction } from "discord.js";
-import { IBotHelperClient } from "../../types/helperTypes";
-import { createSlashCmd, addStringOptionWithChoicesToSlashCmd } from "../../utils/discordjsHelper";
-import fetch from 'isomorphic-fetch'
+import { IBotHelperClient, IEmbedOptions } from "../../types/helperTypes";
+import { createSlashCmd, addStringOptionWithChoicesToSlashCmd, createEmbed } from "../../utils/discordjsHelper";
+import fetch from "isomorphic-fetch";
 const cmd = createSlashCmd("whatisup", "This command will tell you what server is up right now");
 addStringOptionWithChoicesToSlashCmd(
   cmd,
@@ -17,24 +17,45 @@ module.exports = {
   data: cmd,
   async execute(interaction: CommandInteraction, client: IBotHelperClient) {
     try {
-      const chosenServer = interaction.options.data.find((e) => e.name.toString().toLowerCase() === "server");
-      if (!chosenServer) return interaction.reply("Error Occurred");
+      await interaction.deferReply();
+
+      const chosenServer = interaction.options.get("server");
+
+      if (!chosenServer) return interaction.editReply("Error Occurred");
+
       const res = await fetch(`https://api.mcsrvstat.us/2/${chosenServer?.value}`, {
         method: "GET",
       });
-      if (res.ok) {
-        const responseJson = await res.json();
-        if (!responseJson.online) return await interaction.reply(`The server ${chosenServer.value} is offline :(`);
-        const replyMessage = `${responseJson?.hostname} is ${
-          responseJson.online === true ? "Online" : "Offline"
-        }.\nCurrently hosting ${responseJson?.motd?.clean}\nGame Ver: ${responseJson?.version}`;
-        await interaction.reply(replyMessage);
-        return;
-      }
-      await interaction.reply(`Could not get details for server ${chosenServer.value}`);
+
+      if (!res.ok) return await interaction.editReply(`Could not get details for server ${chosenServer.value}`);
+
+      const responseJson = await res.json();
+
+      const eOptions: IEmbedOptions = {
+        setTitle: `${chosenServer.value} is ${responseJson.online === true ? "Online" : "Offline"}`,
+        setDescription: `The status of the minecraft server ${chosenServer.value}`,
+        addFields: [
+          {
+            name: "Currently hosting",
+            value: `${responseJson?.motd?.clean}`,
+            inline: false,
+          },
+          {
+            name: "Game Version",
+            value: `${responseJson?.version}`,
+            inline: false,
+          },
+        ],
+      };
+
+      const embed = createEmbed(eOptions);
+
+      await interaction.editReply({ embeds: [embed] });
+
+      return;
     } catch (err) {
       console.log(err);
-      await interaction.reply("Error Occurred");
+      await interaction.channel.send("Error Occurred");
     }
   },
 };
