@@ -1,6 +1,7 @@
 import { CommandInteraction } from "discord.js";
 import { IBotHelperClient } from "../../types/helperTypes";
 import { createSlashCmd, addStringOptionWithChoicesToSlashCmd } from "../../utils/discordjsHelper";
+import fetch from 'isomorphic-fetch'
 const cmd = createSlashCmd("whatisup", "This command will tell you what server is up right now");
 addStringOptionWithChoicesToSlashCmd(
   cmd,
