@@ -37,12 +37,12 @@ module.exports = {
         addFields: [
           {
             name: "Currently hosting",
-            value: `${responseJson?.motd?.clean}`,
+            value: `${responseJson?.motd?.clean ?? "None"}`,
             inline: false,
           },
           {
             name: "Game Version",
-            value: `${responseJson?.version}`,
+            value: `${responseJson?.version ?? "None"}`,
             inline: false,
           },
         ],
